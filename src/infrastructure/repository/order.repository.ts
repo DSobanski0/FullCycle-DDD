@@ -26,7 +26,7 @@ export default class OrderRepository implements OrderRepositoryInterface {
     }
 
     async update(entity: Order): Promise<void> {
-        const updatedItems = entity.items.map((item) => ({
+        const itemsOnOrder = entity.items.map((item) => ({
             id: item.id,
             product_id: item.productId,
             name: item.name,
@@ -35,16 +35,16 @@ export default class OrderRepository implements OrderRepositoryInterface {
         }));
 
         const itemsOnDB = await OrderItemModel.findAll({ where: { order_id: entity.id } });
-        for (const updatedItem of updatedItems) {
-            const itemExistsOnDB = itemsOnDB.find((itemOnDB) => itemOnDB.id === updatedItem.id);
+        for (const itemOnOrder of itemsOnOrder) {
+            const itemExistsOnDB = itemsOnDB.find((itemOnDB) => itemOnDB.id === itemOnOrder.id);
 
             if (!itemExistsOnDB) {
-                await OrderItemModel.create({ ...updatedItem, order_id: entity.id });
+                await OrderItemModel.create({ ...itemOnOrder, order_id: entity.id });
             }
         }
 
         for (const itemOnDB of itemsOnDB) {
-            const itemExistsOnUpdatedItems = updatedItems.find((updatedItem) => updatedItem.id === itemOnDB.id);
+            const itemExistsOnUpdatedItems = itemsOnOrder.find((itemOnOrder) => itemOnOrder.id === itemOnDB.id);
 
             if (!itemExistsOnUpdatedItems) {
                 await OrderItemModel.destroy({ where: { id: itemOnDB.id } });
